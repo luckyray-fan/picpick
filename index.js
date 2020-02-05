@@ -5,8 +5,7 @@ var fileType = require('file-type');
 var config = require('./config');
 var logger = require('./src/log');
 
-//根据目录路径返回该路径下所有文件的路径, 递归, 同步写法, 这个file-type没有同步, 同步个屁, 递归加await头都大了
-//不考虑报错?搞不死你
+//根据目录路径返回该路径下所有文件的路径, 递归
 var minImageSize = 300000;
 async function getImgsPath(dirPath) {
   var imgArr = [];
@@ -48,12 +47,20 @@ function moveFile(imgArr) {
     fs.mkdirSync(newDir);
     fs.mkdirSync(config.path.out);
   }
-  return imgArr.map((i) => {
-    var newPath = path.resolve(newDir, i.name);
-    fs.renameSync(i.path, newPath);
-    logger.info(config.output.move(i.name, i.size));
-    return { name: i.name, path: newPath, size: i.size };
-  });
+  return imgArr
+    .map((i) => {
+      if (i.path.includes(newDir)) {
+        return i;
+      }
+      if (i.path.includes(path.resolve(config.path.out))) {
+        return '';
+      }
+      var newPath = path.resolve(newDir, i.name);
+      fs.renameSync(i.path, newPath);
+      logger.info(config.output.move(i.name, i.size));
+      return { name: i.name, path: newPath, size: i.size };
+    })
+    .filter((i) => typeof i === 'object');
 }
 // var imgArr = getImgsPath(config.path.source)
 //   .then((i) => picpick(moveFile(i)))

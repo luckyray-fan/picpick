@@ -1,5 +1,8 @@
 var conf = require('./config.user');
 var config = {
+  pic: {
+    prefix: 'IMG' //用来统一名称, 方便文件系统排序
+  },
   qiniu: {
     bucket: '',
     accessKey: '',
@@ -55,4 +58,13 @@ var config = {
     }
   }
 };
-module.exports = Object.assign(config, conf);
+config = Object.assign(config, conf);
+//path 配置
+if (!config.path.out) {
+  config.path.out = config.path.source + '//out';
+}
+if (!config.path.move) {
+  config.path.move = config.path.source + '//lowQuality';
+}
+
+module.exports = config;

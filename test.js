@@ -2,7 +2,8 @@ var { doSearch } = require('./src/picpick');
 var { get, getImg, getSource } = require('./src/get');
 var { getLowDir } = require('./index');
 var { waitIpPool } = require('./src/sauce');
-var imgArr = getLowDir('D://project//fe//plugin//picpick//img//lowQuality');
+var config = require('./config');
+var imgArr = getLowDir(config.path.move);
 var logger = require('./src/log');
 
 const sleep = (ms) => {
@@ -38,7 +39,7 @@ var imgInfos = [];
     ); //想打印
   }
   let results = await Promise.all(searchArr);
-  let success = results.filter((i) => i == 1).length;
+  let success = results.filter((i) => i.size > 0 && i.success).length;
   console.log(`下载成功的数目${success}, 下载失败的数目为${results.length - success}`);
 })();
 
@@ -65,4 +66,4 @@ var imgInfos = [];
 //enhance: search flow(如果网站给出的source没法解析, 使用下一个网站的source), 当前下载数目
 //并行下载数目控制, 为什么nodejs会卡住, 增加代理网站
 //选择下载质量最好的网站, 有pixiv不要twitter等
-//下载重试, 查询控制(每个ip 30秒内查5次, 并考虑查询重试的时间)
+//下载重试, 未下载好不能移动查询图

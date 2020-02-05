@@ -11,9 +11,12 @@ const errRes = { similarity: 0 };
 const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
-var errArr = [];
+var errArr = {};
 async function getSearchResult(imgURL, localGet, retryNum = 3) {
-  if (retryNum >= 0)
+  if (retryNum >= 0) {
+    if (errArr[imgURL] === undefined) {
+      errArr[imgURL] = [];
+    }
     return await localGet(`https://saucenao.com/search.php`, {
       params: {
         db: 999,
@@ -23,14 +26,13 @@ async function getSearchResult(imgURL, localGet, retryNum = 3) {
         api_key: config.sauce.api_key
       }
     }).catch(async (i) => {
-      errArr.push(i.message);
+      errArr[imgURL].push(i.message);
       retryNum -= 1;
       return await getSearchResult(imgURL, getProxy(imgURL), retryNum);
     });
-  else {
-    let tem = [].concat(errArr);
-    errArr = [];
-    return `访问imgURL,重试了三次也没有成功, 失败原因为${tem}`;
+  } else {
+    let tem = [].concat(errArr[imgURL]);
+    return `访问${imgURL},重试了三次也没有成功, 失败原因为${tem}`;
   }
 }
 /**

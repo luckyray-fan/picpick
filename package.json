@@ -8,8 +8,7 @@
     "url": "git+https://github.com/Tsuk1ko/CQ-picfinder-robot.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "set UV_THREADPOOL_SIZE=75 & node test.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "luckyray",

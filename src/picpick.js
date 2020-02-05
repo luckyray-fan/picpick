@@ -69,12 +69,13 @@ async function doSearch(imgURL, fileName, imgInfo) {
     logger.info(`文件${fileName} 在 iqdb 找到了${source}`);
     var urls = await getSource(source);
     if (urls.length <= 0) {
-      imgInfo.download['err'].push('图库的也被删了, 那这是真的没辙了');
+      imgInfo.download['err'].push(
+        '图库的也被删了, 或者是需要高等级账号(danbooru), 或者赞助(pixiv)那这是真的没辙了, 手动google吧'
+      );
     }
   }
   console.log(urls);
   //如果有一张没有下载成功如何处理?等以后用面向对象的形式重写的时候再来吧
-
   let successArr = await Promise.all(
     urls.map(async (i, j) => {
       if (i === undefined) {
@@ -87,10 +88,12 @@ async function doSearch(imgURL, fileName, imgInfo) {
       }; //目前只有两个属性, 为了不大幅度改变函数的返回值, 将对象传入函数
       imgInfo.download.push(downloadInfo);
       var nameSplit = fileName.split('.');
-      let success = await getImg(i, 'IMG' + nameSplit[0] + 'A' + j, downloadInfo).catch((i) => {
-        logger.error(`在下载${i} 发生了i.message`);
-        return i;
-      });
+      let success = await getImg(i, config.pic.prefix + nameSplit[0] + 'A' + j, downloadInfo).catch(
+        (i) => {
+          logger.error(`在下载${i} 发生了i.message`);
+          return i;
+        }
+      );
       if (success) downloadInfo.success = success;
       return success;
     })
@@ -111,7 +114,8 @@ async function picpick(imgArr) {
   var len = imgArr.length;
   logger.info(config.output.date + config.output.filesNum(len));
   await waitIpPool();
-  var searchArr = [];
+  var searchArr = [],
+    imgInfos = [];
   for (let i = 0; i < imgArr.length; i++) {
     let k = imgArr[i];
     let imgInfo = {
@@ -129,12 +133,9 @@ async function picpick(imgArr) {
     };
     imgInfos.push(imgInfo);
     await sleep(2000);
-    searchArr.push(
-      getUploadInfo(k.path, k.name, doSearch, imgInfo).then((i) => {
-        logger.imgLogger.info(i);
-        return i;
-      })
-    );
+    searchArr.push(getUploadInfo(k.path, k.name, doSearch, imgInfo));
   }
+  await Promise.all(searchArr);
+  return imgInfos;
 }
 module.exports = { picpick, doSearch };

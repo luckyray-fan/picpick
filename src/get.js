@@ -69,6 +69,10 @@ async function getSource(url) {
   }
   switch (hostname) {
     case 'danbooru.donmai.us':
+      if($('#post-option-download a').length<=0){
+        logger.error(`访问 ${url} 没有下载内容`)
+        return []
+      }
       return [
         $('#post-option-download a')
           .attr('href')
@@ -148,10 +152,16 @@ async function getSource(url) {
         logger.error(urls.errors.system.message);
         return [];
       }
-      if (urls.response[0].metadata)
+      if (urls.response[0].metadata){
+        if(!urls.response[0].metadata.pages){
+          logger.error(`${url} 在pixiv中的图是张gif`)
+          return []
+        }
         return urls.response[0].metadata.pages.map((i) => {
           return i.image_urls.large;
         });
+      }
+
       else return [urls.response[0].image_urls.large];
     case 'nijie.info':
       var urls = $('.mozamoza.ngtag');
@@ -306,6 +316,8 @@ async function getUploadInfoSMMS(path) {
 }
 
 function getUploadInfo(path, fileName, doSearch, imageInfo) {
+  let flag = false,
+    res;
   var mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
   var options = {
     scope: bucket
@@ -320,7 +332,11 @@ function getUploadInfo(path, fileName, doSearch, imageInfo) {
   var putExtra = new qiniu.form_up.PutExtra();
   var key = fileName;
   // 文件上传
-  formUploader.putFile(uploadToken, key, path, putExtra, function(respErr, respBody, respInfo) {
+  formUploader.putFile(uploadToken, key, path, putExtra, async function(
+    respErr,
+    respBody,
+    respInfo
+  ) {
     if (respErr) {
       throw respErr;
     }
@@ -328,13 +344,27 @@ function getUploadInfo(path, fileName, doSearch, imageInfo) {
       logger.info(config.output.upload(fileName));
       var uploadUrl = config.qiniu.domain + fileName;
       imageInfo.upload.url = uploadUrl;
-
-      return doSearch(uploadUrl + config.qiniu.imageMagick, fileName, imageInfo); //是个异步
+      flag = true;
+      res = doSearch(uploadUrl + config.qiniu.imageMagick, fileName, imageInfo).then((i) => {
+        logger.imgLogger.info(i);
+        return i;
+      }).catch(i=>{
+        logger.imgLogger.info(i);
+        return i;
+      }); //是个异步
     } else {
       imageInfo.upload.url = respBody;
       console.log(respInfo.statusCode);
       logger.error('上传出错' + respBody);
     }
+  });
+  return new Promise((resolve, reject) => {
+    let time = setInterval(() => {
+      if (flag === true) {
+        clearInterval(time);
+        resolve(res);
+      }
+    }, 1000);
   });
 }
 // let formData = new FormData();
