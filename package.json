@@ -1,25 +1,34 @@
 {
   "name": "picpick",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
-    "react-scripts": "2.1.1"
+  "version": "1.0.0",
+  "description": "132",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tsuk1ko/CQ-picfinder-robot.git"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "set UV_THREADPOOL_SIZE=75 & node test.js"
   },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ]
+  "keywords": [],
+  "author": "luckyray",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.1",
+    "axios-retry": "^3.1.2",
+    "cheerio": "^1.0.0-rc.3",
+    "file-type": "^13.1.0",
+    "form-data": "^3.0.0",
+    "http-proxy-agent": "^4.0.0",
+    "https-proxy-agent": "^4.0.0",
+    "imgur": "^0.3.1",
+    "log4js": "^6.1.0",
+    "progress": "^2.0.3",
+    "qiniu": "^7.3.0",
+    "request": "^2.88.0",
+    "socks-proxy-agent": "^4.0.2",
+    "sqlite3": "^4.1.1",
+    "why-is-node-running": "^2.1.0"
+  }
 }
