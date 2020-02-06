@@ -323,7 +323,7 @@ async function getUploadInfoSMMS(path) {
   var formData = new FormData();
   formData.append('smfile', fs.createReadStream(path));
   formData.append('format', 'json');
-  // console.log(formData);我哭了, 这什么鬼呀, 终于ok了, 哭了
+  // console.log(formData);
   const res = await Axios.post(smms.url + smms.uploadApi, formData, {
     headers: { Authorization: smms.TOKEN, ...formData.getHeaders() }
   });

@@ -66,4 +66,4 @@ var imgInfos = [];
 //enhance: search flow(如果网站给出的source没法解析, 使用下一个网站的source), 当前下载数目
 //并行下载数目控制, 为什么nodejs会卡住, 增加代理网站
 //选择下载质量最好的网站, 有pixiv不要twitter等
-//下载重试, 未下载好不能移动查询图
+//下载重试
