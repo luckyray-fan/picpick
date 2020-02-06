@@ -18,7 +18,7 @@
 
 ## 使用方法
 
-- git clone
+- git clone, npm install 等
 - 配置
 
   - 创建一个文件 config.user.js: 因为不想上传我的配置
