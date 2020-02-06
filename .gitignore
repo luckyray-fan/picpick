@@ -25,4 +25,4 @@ yarn-error.log*
 # config and picture files and log
 /img
 config.user.js
-.log
+*.log

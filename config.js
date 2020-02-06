@@ -1,15 +1,15 @@
 var conf = require('./config.user');
 var config = {
   pic: {
-    prefix: 'IMG' //用来统一名称, 方便文件系统排序
+    prefix: 'IMG' //用来统一名称, 方便文件系统排序,IMG
   },
   qiniu: {
-    bucket: '',
-    accessKey: '',
+    bucket: '', //空间名称
+    accessKey: '', //密钥
     secretKey: '',
-    domain: '',
+    domain: '', //它给的暂时域名, 或者你绑定的域名
     zone: (qiniu) => qiniu.zone.Zone_z0, //如果要使用请查询七牛nodejs 文档, 区域对不上会报错的
-    imageMagick: ''
+    imageMagick: '' // 图片接口, 在七牛云图片样式中设置, 没有的话如果有 webp 等格式 iqdb 会报错
   },
   smms: {
     TOKEN: '', //smms token
@@ -17,7 +17,7 @@ var config = {
     uploadApi: '/upload'
   },
   sauce: {
-    api_key: ''
+    api_key: '' //测试后没什么用
   },
   proxy: {
     sock: 'socks://127.0.0.1:1080', //你懂的, 这是ssr同构!(正声)

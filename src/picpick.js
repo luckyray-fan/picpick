@@ -90,7 +90,7 @@ async function doSearch(imgURL, fileName, imgInfo) {
       var nameSplit = fileName.split('.');
       let success = await getImg(i, config.pic.prefix + nameSplit[0] + 'A' + j, downloadInfo).catch(
         (i) => {
-          logger.error(`在下载${i} 发生了i.message`);
+          logger.error(`在下载${i} 发生了 ${i.message}`);
           return i;
         }
       );
@@ -104,7 +104,7 @@ async function doSearch(imgURL, fileName, imgInfo) {
   }
   fs.renameSync(
     path.resolve(config.path.move, fileName),
-    path.resolve(config.path.out, 'IMG' + fileName)
+    path.resolve(config.path.out, config.pic.prefix + fileName)
   );
   logger.log(`查询文件${fileName}移动到${config.path.out}成功, 并添加上IMG前缀`);
   return imgInfo;

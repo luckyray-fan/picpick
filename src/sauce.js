@@ -110,9 +110,8 @@ async function sauceResult(imgURL) {
 
         return { similarity, source };
       } else {
-        logger.error(data);
-        errRes.code = data;
-
+        logger.error(`在 sauce 访问 ${imgURL} 发生 ${JSON.stringify(data)}`);
+        errRes.code = JSON.stringify(data);
         return errRes;
       }
     })

@@ -52,7 +52,7 @@ var get = client.get;
  *
  * @export
  * @param {String} url URL
- * @returns URL
+ * @returns [] array
  */
 async function getSource(url) {
   searchSum += 1;
@@ -69,9 +69,9 @@ async function getSource(url) {
   }
   switch (hostname) {
     case 'danbooru.donmai.us':
-      if($('#post-option-download a').length<=0){
-        logger.error(`访问 ${url} 没有下载内容`)
-        return []
+      if ($('#post-option-download a').length <= 0) {
+        logger.error(`访问 ${url} 没有下载内容`);
+        return [];
       }
       return [
         $('#post-option-download a')
@@ -152,17 +152,15 @@ async function getSource(url) {
         logger.error(urls.errors.system.message);
         return [];
       }
-      if (urls.response[0].metadata){
-        if(!urls.response[0].metadata.pages){
-          logger.error(`${url} 在pixiv中的图是张gif`)
-          return []
+      if (urls.response[0].metadata) {
+        if (!urls.response[0].metadata.pages) {
+          logger.error(`${url} 在pixiv中的图是张gif`);
+          return [];
         }
         return urls.response[0].metadata.pages.map((i) => {
           return i.image_urls.large;
         });
-      }
-
-      else return [urls.response[0].image_urls.large];
+      } else return [urls.response[0].image_urls.large];
     case 'nijie.info':
       var urls = $('.mozamoza.ngtag');
       return [];
@@ -190,7 +188,7 @@ function imgTick() {
 var downFlag = {},
   maxDownNum = 3; //这work thread 修改值怎么写锁啊, 就干脆把这些看成线程算了, 查了以后,不用考虑内存同步问题, 不会A函数运行到一半, 切换到B函数
 //线程并发数最大是4, 考虑打开文件系统的数目
-async function getImg(url, fileName, downloadInfo) {
+async function getImg(url, fileName, downloadInfo, retryNum = 3) {
   if (!url) return;
   if (downFlag[fileName] !== undefined) {
     downFlag[fileName] = false;
@@ -208,7 +206,7 @@ async function getImg(url, fileName, downloadInfo) {
       let time = setInterval(() => {
         if (downFlag[fileName]) {
           clearInterval(time);
-          resolve(downFlag[fileName]);
+          resolve(true);
         }
       }, 3000);
     }).catch((i) => {
@@ -223,22 +221,37 @@ async function getImg(url, fileName, downloadInfo) {
     }
   }
   if (url.includes('pximg')) {
-    options.headers.Referer = 'https://www.pixiv.net/';
+    options.headers.Referer = 'https://www.pixiv.net/'; //这个更改后一直留着的, 但是没有明显请求错误现在不想改
   }
   logger.info(output.connect(url));
   imgCur += 1;
   imgTick();
+  let cancel = Axios.CancelToken.source();
+  let downTime = setTimeout((i) => {
+    cancel.cancel();
+  }, 8000);
   const res = await Axios({
     ...options,
     url,
     method: 'GET',
-    responseType: 'stream'
+    responseType: 'stream',
+    cancelToken: cancel.token
   }).catch((i) => {
-    downloadInfo.success = `访问页面 ${url} ${i.message}`;
-    logger.error(downloadInfo.success);
     imgCur -= 1;
     imgFail += 1;
     imgTick();
+    if (Axios.isCancel(i)) {
+      retryNum -= 1;
+      if (retryNum > 0) {
+        downFlag[url] = undefined;
+        return getImg(url, fileName, downloadInfo, retryNum);
+      }
+      downloadInfo.success = `访问页面 ${url} 连续三次超时结束`;
+      return '';
+    }
+    downloadInfo.success = `访问页面 ${url} ${i.message}`;
+    logger.error(downloadInfo.success);
+
     return ''; //有时候没有这个页面, 被删掉了之类的
   });
   if (res !== '') {
@@ -268,6 +281,7 @@ async function getImg(url, fileName, downloadInfo) {
       progressBar.tick(len);
     });
     res.data.on('end', () => {
+      clearTimeout(downTime);
       logger.info(config.output.done(fileName, totalLen / 1000));
     });
     const path = Path.resolve(config.path.out, fileName + '.' + fileType);
@@ -302,6 +316,7 @@ async function getImg(url, fileName, downloadInfo) {
       logger.error(i.message);
     });
   }
+  return res;
 }
 
 async function getUploadInfoSMMS(path) {
@@ -345,13 +360,15 @@ function getUploadInfo(path, fileName, doSearch, imageInfo) {
       var uploadUrl = config.qiniu.domain + fileName;
       imageInfo.upload.url = uploadUrl;
       flag = true;
-      res = doSearch(uploadUrl + config.qiniu.imageMagick, fileName, imageInfo).then((i) => {
-        logger.imgLogger.info(i);
-        return i;
-      }).catch(i=>{
-        logger.imgLogger.info(i);
-        return i;
-      }); //是个异步
+      res = doSearch(uploadUrl + config.qiniu.imageMagick, fileName, imageInfo)
+        .then((i) => {
+          logger.imgLogger.info(i);
+          return i;
+        })
+        .catch((i) => {
+          logger.imgLogger.info(i);
+          return i;
+        }); //是个异步
     } else {
       imageInfo.upload.url = respBody;
       console.log(respInfo.statusCode);

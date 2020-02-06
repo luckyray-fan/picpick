@@ -1,3 +1,4 @@
+var config = require('./proxyTest');
 var t1 = setInterval(() => {
   for (var i = 0; i < 1e12; i++) {}
   console.log();
